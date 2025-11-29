@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lavender Dream — Mon Agenda</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --bg-gradient-start: #fff7fb;
+        --bg-gradient-end: #fff0f6;
+        --card-bg: rgba(255, 255, 255, 0.75);
+        --primary-color: #f472b6; 
+        --primary-color-hover: #ec4899;
+        --secondary-color: #d8b4dd; 
+        --text-header: #a855f7;
+        --text-body: #374151;
+        --text-subtle: #b91c6b;
+        --text-completed: #9ca3af;
+        --border-color: #ffd6e8;
+        --shadow-color: rgba(240, 172, 206, 0.25);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        color: var(--text-body);
+      }
+
+      h1, h2, h3, h4, h5, h6 {
+        font-family: 'Playfair Display', serif;
+      }
+
+      .todo-app {
+        max-width: 540px;
+        background: var(--card-bg);
+        -webkit-backdrop-filter: blur(10px); /* Moved for proper order */
+        backdrop-filter: blur(10px); /* Standard property */
+        padding: 2rem;
+        border-radius: 1.75rem;
+        box-shadow: 0 24px 48px -12px var(--shadow-color);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+      }
+
+      .header, .footer {
+        text-align: center;
+      }
+
+      .todo-form {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .todo-input {
+        flex-grow: 1;
+        border: 1px solid var(--border-color);
+        padding: 0.75rem 1.25rem;
+        border-radius: 9999px;
+        transition: box-shadow 0.2s, transform 0.12s;
+      }
+
+      .add-btn {
+        background: linear-gradient(180deg,var(--primary-color),var(--primary-color-hover));
+        color: white;
+        border: none;
+        width: 3.3rem;
+        height: 3.3rem;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 18px rgba(244,114,182,0.18);
+        transition: transform 0.18s;
+      }
+
+      .todo-list {
+        list-style: none;
+        max-height: 24rem;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+      }
+
+      .todo-item {
+        display: flex;
+        align-items: center;
+        padding: 0.95rem;
+        margin-bottom: 0.5rem;
+        border-radius: 0.9rem;
+        background: rgba(255, 255, 255, 0.85);
+        transition: all 0.25s ease-in-out;
+      }
+
+      .todo-item.completed {
+        background: rgba(248,231,243,0.6);
+      }
+
+      .delete-btn {
+        border: none;
+        background: none;
+        color: var(--border-color);
+        cursor: pointer;
+        padding: 0.45rem;
+        margin-left: 0.9rem;
+        opacity: 0;
+        transition: opacity 0.18s;
+      }
+
+      .todo-item:hover .delete-btn {
+        opacity: 1;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 2.25rem 1rem;
+        background: linear-gradient(180deg, rgba(255,239,244,0.6), rgba(255,250,250,0.4));
+        border-radius: 0.75rem;
+      }
+    </style>
+</head>
+<body>
+    <main class="todo-app">
+        <header class="header">
+            <h1>Lavender Dream</h1>
+            <p>Organise ta journée avec douceur ✨</p>
+        </header>
+
+        <form class="todo-form" id="todo-form">
+            <input type="text" id="todo-input" class="todo-input" placeholder="Ajouter une jolie tâche..." autocomplete="off" aria-label="Saisir une nouvelle tâche" />
+            <button type="submit" class="add-btn" aria-label="Ajouter la tâche" title="Ajouter">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M12 21s-7.5-4.873-9.5-7.273C-1 9.5 4 4 8.5 6.5 11 8 12 9 12 9s1-1 3.5-2.5C20 4 25 9.5 21.5 13.727 19.5 16.127 12 21 12 21z" fill="white" opacity="0.95"/>
+                  <path d="M12 7v6" stroke="#ffe6f2" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M9 10h6" stroke="#ffe6f2" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </form>
+
+        <div id="list-container"></div>
+        
+        <footer class="footer">
+            <p>Conçu avec ♡ pour toi.</p>
+        </footer>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const todoForm = document.getElementById('todo-form');
+            const todoInput = document.getElementById('todo-input');
+            const listContainer = document.getElementById('list-container');
+            const TODOS_STORAGE_KEY = 'todos-lavender-dream';
+            let todos = JSON.parse(localStorage.getItem(TODOS_STORAGE_KEY)) || [];
+
+            const renderTodos = () => {
+                listContainer.innerHTML = todos.length ? todos.map(todo => `
+                    <div class="todo-item ${todo.completed ? 'completed' : ''}" data-id="${todo.id}">
+                        <div class="content" tabindex="0" role="button" aria-pressed="${todo.completed}">
+                            <span class="text">${todo.text}</span>
+                        </div>
+                        <button class="delete-btn" aria-label="Supprimer la tâche" title="Supprimer">🗑️</button>
+                    </div>
+                `).join('') : `<div class="empty-state"><p>Ta liste est vide.</p><p>Ajoute des tâches pour commencer ✨</p></div>`;
+            };
+
+            const saveTodos = () => localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(todos));
+
+            todoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const text = todoInput.value.trim();
+                if (text) {
+                    todos.unshift({ id: Date.now(), text, completed: false });
+                    saveTodos();
+                    renderTodos();
+                    todoInput.value = '';
+                }
+            });
+
+            listContainer.addEventListener('click', (e) => {
+                const item = e.target.closest('.todo-item');
+                if (item) {
+                    const id = Number(item.dataset.id);
+                    if (e.target.matches('.delete-btn')) {
+                        todos = todos.filter(todo => todo.id !== id);
+                    } else {
+                        const todo = todos.find(todo => todo.id === id);
+                        todo.completed = !todo.completed;
+                    }
+                    saveTodos();
+                    renderTodos();
+                }
+            });
+
+            renderTodos();
+        });
+    </script>
+</body>
+</html>
